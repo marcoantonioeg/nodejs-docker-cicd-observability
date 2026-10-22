@@ -1,6 +1,7 @@
 const express = require('express');
 const {Pool} = require('pg');
 require('dotenv').config();
+require('./tracing.js');
 
 const app = express();
 app.use(express.json());
@@ -24,6 +25,36 @@ pool.query(
   )
 `
 ).catch(console.error)
+
+//prometheus
+const promClient = require('prom-client');
+
+//recopilar métricas por defecto (CPU, RAM del contender node)
+const collectDefaultMetrics = promClient.collectDefaultMetrics;
+collectDefaultMetrics({register: promClient.register});
+
+//crear histograma personalizado para medir la duración de las peticion HTTP
+const httpRequestDurationMicroseconds = new promClient.Histogram({
+   name: 'http_request_duration_seconds',
+   help: 'Duracion de peticiones HTTP en segundos',
+   labelNames: ['method', 'route', 'code'],
+   buckets: [0.1, 0.3, 0.5, 0.7, 1, 3, 5, 7, 10] //tiempos de respuesta en segundos
+})
+
+//Middleware para medir el tiempo de cada peticion
+app.use((req, res, next) => {
+   const end = httpRequestDurationMicroseconds.startTimer();
+   res.on('finish', () => {
+      end({route: req.route ? req.route.path : req.path, code: res.statusCode, method: req.method});
+   });
+   next();
+});
+
+//endpoint que prometheus visitará para metricas
+app.get('/metrics', async (req, res) => {
+   res.set('Content-Type', promClient.register.contentType);
+   res.end(await promClient.register.metrics());
+});
 
 //heath check - requerido para docker y balanceadores de carga
 app.get('/health', (req, res)=> {

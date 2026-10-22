@@ -1,0 +1,11 @@
+groups:
+  - name: api_alerts
+    rules:
+      - alert: apiCaida
+        expr: up{job="nodejs-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "La API Node.js está caída"
+          description: "Prometheus no ha podido conectarse a la API en el último minuto."

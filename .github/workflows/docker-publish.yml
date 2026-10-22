@@ -7,7 +7,7 @@ on:
       branches: [main]
 
 env:
-   IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/nodejs-docker-cicd
+   IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/nodejs-docker-cicd-observability
 
 jobs:
    build-and-push:

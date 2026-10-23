@@ -1,36 +1,21 @@
-# Task Management API - DevOps CI/CD Pipeline
+# Node.js API - Observability Stack
 
-Este proyecto es una API RESTful para la gestión de tareas, empaquetada y orquestada mediante Docker, con un pipeline de Integración y Entrega Continua (CI/CD) completamente automatizado a través de GitHub Actions.
+Este proyecto implementa una capa completa de observabilidad (Métricas, Logs y Trazas) sobre una API RESTful en Node.js y PostgreSQL, utilizando un stack 100% open source y optimizado para entornos locales.
 
-El objetivo principal es demostrar prácticas de contenedorización, despliegue local de entornos multi-servicio y automatización de procesos DevOps.
+## Arquitectura de Observabilidad
 
-## Arquitectura y Tecnologías
+- **Aplicación:** Node.js (Express) auto-instrumentado con OpenTelemetry y `prom-client`.
+- **Métricas:** **Prometheus** extrayendo datos mediante modelo Pull.
+- **Logs:** **Grafana Loki** centralizando registros mediante **Promtail** (leyendo directamente del socket de Docker).
+- **Trazas Distribuidas:** **Grafana Tempo** recibiendo trazas OTLP para identificar latencia entre Express y PostgreSQL.
+- **Visualización:** **Grafana OSS** unificando las tres señales en una sola interfaz.
+- **Alertas:** **Alertmanager** gestionando reglas de indisponibilidad evaluadas por Prometheus.
 
-- **Backend:** Node.js 20 (Active LTS) y Express.js.
-- **Base de Datos:** PostgreSQL 15.
-- **Contenedorización:** Docker (Dockerfile multi-stage para optimización de tamaño y seguridad).
-- **Orquestación Local:** Docker Compose (Redes internas, dependencias de inicio y volúmenes persistentes).
-- **CI/CD:** GitHub Actions (Construcción automática y publicación).
-- **Registro de Contenedores:** Docker Hub.
+## 🚀Despliegue Local
 
-## Características DevOps Implementadas
+El stack está orquestado con Docker Compose. Diseñado para consumir pocos recursos, evitando componentes pesados basados en JVM.
 
-- **Construcción Multi-stage:** Reduce el peso de la imagen de producción eliminando dependencias de desarrollo y utiliza un usuario no-root por seguridad.
-- **Health Checks:** Configurados tanto en el contenedor de Node.js como en PostgreSQL para garantizar que el tráfico solo fluya cuando los servicios están listos.
-- **Caché en CI/CD:** Implementación de caché de capas en GitHub Actions (`type=gha`) para acelerar los tiempos de construcción en subsecuentes ejecuciones.
-- **Versionado Dinámico:** Generación automática de etiquetas `latest` y `sha-*` para control de versiones y rollback inmediato.
-
-## Ejecución Local
-
-### Prerrequisitos
-
-- [Docker Desktop](https://docs.docker.com/get-docker/) instalado.
-- Git.
-
-### Instalación y Despliegue
-
-1. Clona este repositorio:
-   ```bash
-   git clone [https://github.com/marcoantonioeg/nodejs-docker-cicd.git)
-   cd nodejs-docker-cicd
-   ```
+```bash
+# Iniciar toda la infraestructura
+docker compose up -d --build
+```
